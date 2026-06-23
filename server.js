@@ -1,7 +1,6 @@
 /**
- * 可选：本地静态文件服务器（开发调试用）
- * 默认请直接双击 index.html 打开，无需本地端口
- * 用法: npm run serve  然后访问 http://localhost:8080
+ * 本地静态文件服务器，用于在浏览器中打开控制面板
+ * 用法: node server.js  然后访问 http://localhost:8080
  */
 const http = require('http');
 const fs = require('fs');

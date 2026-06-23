@@ -3,128 +3,152 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>智能温控开窗系统 - Web 控制台</title>
+  <title>智能温控开窗系统</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <div class="app">
-    <header>
-      <div>
-        <h1>智能温控开窗系统</h1>
-        <p>STM32F407 · 巴法云 MQTT 远程控制</p>
+    <header class="topbar">
+      <div class="topbar-title">
+        <h1>智能温控开窗</h1>
+        <span class="topbar-sub">STM32F407 · 巴法云 MQTT</span>
       </div>
-      <div id="connBadge" class="status-badge offline">
-        <span class="status-dot"></span>
-        <span id="connText">未连接</span>
+      <div class="topbar-meta">
+        <span id="lastUpdate" class="meta-time">--</span>
+        <div id="connBadge" class="status-badge offline">
+          <span class="status-dot"></span>
+          <span id="connText">未连接</span>
+        </div>
       </div>
     </header>
 
-    <div class="grid">
-      <!-- 温度 -->
-      <div class="card">
-        <h2>环境温度</h2>
-        <div class="temp-display">
-          <div>
-            <span id="tempValue" class="temp-value">--</span>
-            <span class="temp-unit">°C</span>
+    <!-- 概览条：温度 + 窗户 + 关键状态 -->
+    <section class="overview">
+      <div class="stat-chip stat-host">
+        <span class="stat-lbl">本机 H</span>
+        <span class="stat-val"><span id="tempValue">--</span><small>°C</small></span>
+      </div>
+      <div class="stat-chip stat-slave">
+        <span class="stat-lbl">从机 S</span>
+        <span class="stat-val stat-val-slave"><span id="slaveTempValue">--</span><small>°C</small></span>
+      </div>
+      <div class="window-mini">
+        <div class="window-frame">
+          <div id="windowPane" class="window-pane"></div>
+        </div>
+        <div class="window-mini-text">
+          <span id="angleLabel" class="angle-label">--°</span>
+          <span id="angleDesc" class="angle-desc">等待</span>
+        </div>
+      </div>
+      <div class="pill-group">
+        <span id="modeTag" class="pill tag-auto">--</span>
+        <span id="wifiTag" class="pill tag-ok">WiFi --</span>
+        <span id="slaveOnlineTag" class="pill">从机 --</span>
+        <span id="iwdgTag" class="pill tag-ok">IWDG --</span>
+      </div>
+    </section>
+
+    <div class="dashboard">
+      <!-- 左侧：控制区 -->
+      <div class="panel-main">
+        <section class="block">
+          <h3>窗户控制</h3>
+          <div class="btn-row">
+            <button id="btnClose" class="btn btn-sm btn-danger" disabled>0°</button>
+            <button id="btnHalf" class="btn btn-sm btn-ghost" disabled>45°</button>
+            <button id="btnOpen" class="btn btn-sm btn-success" disabled>90°</button>
+            <button id="btnExtra" class="btn btn-sm btn-ghost" disabled>135°</button>
+            <span class="btn-divider"></span>
+            <button id="btnManual" class="btn btn-sm btn-warning" disabled>手动</button>
+            <button id="btnAuto" class="btn btn-sm btn-warning" disabled>自动</button>
+            <button id="btnGet" class="btn btn-sm btn-ghost" disabled>刷新</button>
           </div>
-          <div class="temp-label">DS18B20 滤波温度 (H)</div>
+        </section>
+
+        <section class="block">
+          <h3>温度阈值 <span class="hint-inline">≥开窗 · ≤关窗</span></h3>
+          <div class="thresh-inline">
+            <label>To<input id="inputThreshOpen" type="number" step="0.1" min="-10" max="85" value="31.0"></label>
+            <label>Tc<input id="inputThreshClose" type="number" step="0.1" min="-10" max="85" value="29.0"></label>
+            <button id="btnApplyThresh" class="btn btn-sm btn-primary" disabled>应用</button>
+            <button id="btnSaveThresh" class="btn btn-sm btn-success" disabled>存Flash</button>
+            <button id="btnDefaultThresh" class="btn btn-sm btn-ghost" disabled>默认</button>
+          </div>
+          <p id="threshHint" class="thresh-hint">开窗阈值 &gt; 关窗阈值，范围 -10~85°C</p>
+        </section>
+
+        <div class="block-grid">
+          <section class="block">
+            <h3>无线射频</h3>
+            <div class="btn-row">
+              <button id="btnRfTx" class="btn btn-sm btn-primary" disabled>RF_TX</button>
+              <button id="btnRfRx" class="btn btn-sm btn-ghost" disabled>RF_RX</button>
+            </div>
+          </section>
+          <section class="block">
+            <h3>红外模拟</h3>
+            <div class="btn-row">
+              <button id="btnIrClose" class="btn btn-sm btn-danger" disabled>键1关</button>
+              <button id="btnIrOpen" class="btn btn-sm btn-success" disabled>键2开</button>
+            </div>
+          </section>
+          <section class="block">
+            <h3>蜂鸣器</h3>
+            <div class="btn-row">
+              <button id="btnBeepOnce" class="btn btn-sm btn-ghost" disabled>短</button>
+              <button id="btnBeepThree" class="btn btn-sm btn-ghost" disabled>三响</button>
+              <button id="btnBeepLong" class="btn btn-sm btn-ghost" disabled>长</button>
+              <button id="btnBeepHalf" class="btn btn-sm btn-ghost" disabled>半开</button>
+              <button id="btnBeepFull" class="btn btn-sm btn-ghost" disabled>全开</button>
+              <button id="btnBeepFault" class="btn btn-sm btn-ghost" disabled>故障</button>
+            </div>
+          </section>
+          <section class="block">
+            <h3>看门狗</h3>
+            <div class="btn-row">
+              <span id="iwdgStatusDetail" class="pill tag-ok pill-sm">--</span>
+              <button id="btnIwdgTest" class="btn btn-sm btn-danger" disabled>复位测试</button>
+            </div>
+          </section>
         </div>
       </div>
 
-      <!-- 窗户状态 -->
-      <div class="card">
-        <h2>窗户 / 舵机</h2>
-        <div class="window-viz">
-          <div class="window-frame">
-            <div id="windowPane" class="window-pane"></div>
-          </div>
-          <div id="angleLabel" class="angle-label">--°</div>
-          <div id="angleDesc" class="angle-desc">等待数据...</div>
-        </div>
-      </div>
+      <!-- 右侧：状态 + 连接 + 日志 -->
+      <aside class="panel-side">
+        <section class="block">
+          <h3>设备状态</h3>
+          <dl class="status-grid">
+            <dt>传感器</dt><dd id="faultTag" class="tag tag-ok">--</dd>
+            <dt>无线 Wm</dt><dd id="wirelessModeTag">--</dd>
+            <dt>锁定 L</dt><dd id="lockTag">--</dd>
+            <dt>开窗 To</dt><dd id="refOpen">--</dd>
+            <dt>关窗 Tc</dt><dd id="refClose">--</dd>
+            <dt>遥控 R</dt><dd id="remoteKeyTag">--</dd>
+            <dt>指令 C</dt><dd id="cloudCmdTag" class="cmd-val">--</dd>
+          </dl>
+        </section>
 
-      <!-- 设备状态 -->
-      <div class="card">
-        <h2>设备状态</h2>
-        <div class="info-list">
-          <div class="info-row">
-            <span>运行模式</span>
-            <span id="modeTag" class="tag tag-auto">--</span>
+        <section class="block">
+          <h3>云端连接</h3>
+          <div class="config-compact">
+            <input id="inputUid" type="text" placeholder="UID" title="巴法云 UID">
+            <input id="inputTopic" type="text" placeholder="主题" title="MQTT 主题">
+            <input id="inputWsUrl" type="text" placeholder="wss://..." title="WebSocket">
+            <div class="btn-row">
+              <button id="btnConnect" class="btn btn-sm btn-primary">连接</button>
+              <button id="btnDisconnect" class="btn btn-sm btn-ghost" disabled>断开</button>
+              <button id="btnSaveConfig" class="btn btn-sm btn-ghost">保存</button>
+            </div>
           </div>
-          <div class="info-row">
-            <span>传感器</span>
-            <span id="faultTag" class="tag tag-ok">--</span>
-          </div>
-          <div class="info-row">
-            <span>设备 WiFi</span>
-            <span id="wifiTag" class="tag tag-ok">--</span>
-          </div>
-          <div class="info-row">
-            <span>最后更新</span>
-            <span id="lastUpdate">--</span>
-          </div>
-          <div class="info-row">
-            <span>开窗阈值 (参考)</span>
-            <span id="refOpen">31.0°C</span>
-          </div>
-          <div class="info-row">
-            <span>关窗阈值 (参考)</span>
-            <span id="refClose">29.0°C</span>
-          </div>
-        </div>
-        <div class="threshold-note">
-          温度阈值需在设备 LCD「Temp Set」菜单中修改并保存到 Flash。云端指令当前支持 OPEN / CLOSE / AUTO / GET。
-        </div>
-      </div>
+        </section>
+
+        <section class="block block-log">
+          <h3>通信日志</h3>
+          <div id="logBox" class="log-box"></div>
+        </section>
+      </aside>
     </div>
-
-    <!-- 控制按钮 -->
-    <div class="card" style="margin-bottom: 20px;">
-      <h2>远程控制</h2>
-      <div class="controls">
-        <button id="btnOpen" class="btn btn-success" disabled>开窗 90°</button>
-        <button id="btnClose" class="btn btn-danger" disabled>关窗 0°</button>
-        <button id="btnAuto" class="btn btn-warning" disabled>自动模式</button>
-        <button id="btnGet" class="btn btn-ghost" disabled>刷新状态</button>
-      </div>
-    </div>
-
-  <div class="grid">
-      <!-- 连接配置 -->
-      <div class="card">
-        <h2>云端连接配置</h2>
-        <div class="config-form">
-          <div class="form-group">
-            <label for="inputUid">巴法云 UID (Client ID)</label>
-            <input id="inputUid" type="text" placeholder="45c255a3ffe318013c347e50f7a8fabe">
-          </div>
-          <div class="form-group">
-            <label for="inputTopic">MQTT 主题</label>
-            <input id="inputTopic" type="text" placeholder="light004">
-          </div>
-          <div class="form-group">
-            <label for="inputWsUrl">WebSocket 地址</label>
-            <input id="inputWsUrl" type="text" placeholder="wss://bemfa.com:9504/wss">
-          </div>
-          <div class="form-actions">
-            <button id="btnConnect" class="btn btn-primary">连接云端</button>
-            <button id="btnDisconnect" class="btn btn-ghost" disabled>断开</button>
-            <button id="btnSaveConfig" class="btn btn-ghost">保存配置</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 日志 -->
-      <div class="card">
-        <h2>通信日志</h2>
-        <div id="logBox" class="log-box"></div>
-      </div>
-    </div>
-
-    <footer>
-      使用前请确保设备已在 LCD「WiFi Cloud」菜单中连接 WiFi 并上线巴法云 · 上报周期约 5 秒
-    </footer>
   </div>
 
   <script src="https://unpkg.com/mqtt@5.3.5/dist/mqtt.min.js"></script>
