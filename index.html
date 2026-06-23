@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智能温控开窗系统 - Web 控制台</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <h1>智能温控开窗系统</h1>
+        <p>STM32F407 · 巴法云 MQTT 远程控制</p>
+      </div>
+      <div id="connBadge" class="status-badge offline">
+        <span class="status-dot"></span>
+        <span id="connText">未连接</span>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- 温度 -->
+      <div class="card">
+        <h2>环境温度</h2>
+        <div class="temp-display">
+          <div>
+            <span id="tempValue" class="temp-value">--</span>
+            <span class="temp-unit">°C</span>
+          </div>
+          <div class="temp-label">DS18B20 滤波温度 (H)</div>
+        </div>
+      </div>
+
+      <!-- 窗户状态 -->
+      <div class="card">
+        <h2>窗户 / 舵机</h2>
+        <div class="window-viz">
+          <div class="window-frame">
+            <div id="windowPane" class="window-pane"></div>
+          </div>
+          <div id="angleLabel" class="angle-label">--°</div>
+          <div id="angleDesc" class="angle-desc">等待数据...</div>
+        </div>
+      </div>
+
+      <!-- 设备状态 -->
+      <div class="card">
+        <h2>设备状态</h2>
+        <div class="info-list">
+          <div class="info-row">
+            <span>运行模式</span>
+            <span id="modeTag" class="tag tag-auto">--</span>
+          </div>
+          <div class="info-row">
+            <span>传感器</span>
+            <span id="faultTag" class="tag tag-ok">--</span>
+          </div>
+          <div class="info-row">
+            <span>设备 WiFi</span>
+            <span id="wifiTag" class="tag tag-ok">--</span>
+          </div>
+          <div class="info-row">
+            <span>最后更新</span>
+            <span id="lastUpdate">--</span>
+          </div>
+          <div class="info-row">
+            <span>开窗阈值 (参考)</span>
+            <span id="refOpen">31.0°C</span>
+          </div>
+          <div class="info-row">
+            <span>关窗阈值 (参考)</span>
+            <span id="refClose">29.0°C</span>
+          </div>
+        </div>
+        <div class="threshold-note">
+          温度阈值需在设备 LCD「Temp Set」菜单中修改并保存到 Flash。云端指令当前支持 OPEN / CLOSE / AUTO / GET。
+        </div>
+      </div>
+    </div>
+
+    <!-- 控制按钮 -->
+    <div class="card" style="margin-bottom: 20px;">
+      <h2>远程控制</h2>
+      <div class="controls">
+        <button id="btnOpen" class="btn btn-success" disabled>开窗 90°</button>
+        <button id="btnClose" class="btn btn-danger" disabled>关窗 0°</button>
+        <button id="btnAuto" class="btn btn-warning" disabled>自动模式</button>
+        <button id="btnGet" class="btn btn-ghost" disabled>刷新状态</button>
+      </div>
+    </div>
+
+  <div class="grid">
+      <!-- 连接配置 -->
+      <div class="card">
+        <h2>云端连接配置</h2>
+        <div class="config-form">
+          <div class="form-group">
+            <label for="inputUid">巴法云 UID (Client ID)</label>
+            <input id="inputUid" type="text" placeholder="45c255a3ffe318013c347e50f7a8fabe">
+          </div>
+          <div class="form-group">
+            <label for="inputTopic">MQTT 主题</label>
+            <input id="inputTopic" type="text" placeholder="light004">
+          </div>
+          <div class="form-group">
+            <label for="inputWsUrl">WebSocket 地址</label>
+            <input id="inputWsUrl" type="text" placeholder="wss://bemfa.com:9504/wss">
+          </div>
+          <div class="form-actions">
+            <button id="btnConnect" class="btn btn-primary">连接云端</button>
+            <button id="btnDisconnect" class="btn btn-ghost" disabled>断开</button>
+            <button id="btnSaveConfig" class="btn btn-ghost">保存配置</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 日志 -->
+      <div class="card">
+        <h2>通信日志</h2>
+        <div id="logBox" class="log-box"></div>
+      </div>
+    </div>
+
+    <footer>
+      使用前请确保设备已在 LCD「WiFi Cloud」菜单中连接 WiFi 并上线巴法云 · 上报周期约 5 秒
+    </footer>
+  </div>
+
+  <script src="https://unpkg.com/mqtt@5.3.5/dist/mqtt.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

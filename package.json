@@ -1,0 +1,10 @@
+{
+  "name": "smart-window-web-panel",
+  "version": "1.0.0",
+  "description": "智能温控开窗系统 Web 控制面板",
+  "private": true,
+  "scripts": {
+    "start": "cmd /c start index.html",
+    "serve": "node server.js"
+  }
+}
