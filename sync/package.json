@@ -1,0 +1,17 @@
+{
+  "name": "greenhouse-sync",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bemfa getmsg → Supabase sensor_data 同步服务",
+  "main": "sync-server.js",
+  "scripts": {
+    "start": "node sync-server.js",
+    "sync-once": "node sync-server.js --once"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.1"
+  }
+}

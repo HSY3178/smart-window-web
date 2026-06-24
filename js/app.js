@@ -270,10 +270,8 @@ function setConnStatus(online, text) {
 }
 
 function addLog(text, type = '') {
-  logWriter(text, type);
+  window.addLog(text, type);
 }
-
-const logWriter = createLogWriter('logBox', 80);
 
 function publishCommand(cmd) {
   if (!mqttClient || !connected) {
@@ -343,7 +341,14 @@ function connectMqtt() {
       return;
     }
     addLog(`收到状态: ${msg.trim()}`, 'recv');
-    updateUI(parseStatus(msg));
+    const parsed = parseStatus(msg);
+    updateUI(parsed);
+    if (typeof window.applyMqttLiveStatus === 'function') {
+      window.applyMqttLiveStatus(parsed);
+    }
+    if (typeof window.scheduleDbRefresh === 'function') {
+      window.scheduleDbRefresh();
+    }
   });
 
   mqttClient.on('error', (err) => {

@@ -1,0 +1,4 @@
+sync/config.js
+sync/.sync-state.json
+sync/node_modules/
+node_modules/

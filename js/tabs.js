@@ -12,6 +12,9 @@
     panels.forEach((p) => {
       p.classList.toggle('active', p.id === 'panel-' + name);
     });
+    if (typeof window.syncLogBoxes === 'function') {
+      window.syncLogBoxes();
+    }
     if (name === 'monitor' && typeof window.initDbMonitor === 'function') {
       window.initDbMonitor();
     }

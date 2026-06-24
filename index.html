@@ -79,9 +79,9 @@
           <div class="thresh-inline">
             <label>To<input id="inputThreshOpen" type="number" step="0.1" min="-10" max="85" value="31.0"></label>
             <label>Tc<input id="inputThreshClose" type="number" step="0.1" min="-10" max="85" value="29.0"></label>
-            <button id="btnApplyThresh" class="btn btn-sm btn-primary" disabled>应用</button>
-            <button id="btnSaveThresh" class="btn btn-sm btn-success" disabled>存Flash</button>
-            <button id="btnDefaultThresh" class="btn btn-sm btn-ghost" disabled>默认</button>
+            <button id="btnApplyThresh" class="btn btn-sm btn-primary" disabled>保存</button>
+            <button id="btnSaveThresh" class="btn btn-sm btn-success" disabled>应用</button>
+            <button id="btnDefaultThresh" class="btn btn-sm btn-ghost" disabled>默认（31.0°C, 29.0°C）</button>
           </div>
           <p id="threshHint" class="thresh-hint">开窗阈值 &gt; 关窗阈值，范围 -10~85°C</p>
         </section>
@@ -95,7 +95,7 @@
             </div>
           </section>
           <section class="block">
-            <h3>红外模拟</h3>
+            <h3>红外</h3>
             <div class="btn-row">
               <button id="btnIrClose" class="btn btn-sm btn-danger" disabled>键1关</button>
               <button id="btnIrOpen" class="btn btn-sm btn-success" disabled>键2开</button>
@@ -184,7 +184,7 @@
       </div>
 
       <section class="block monitor-chart-block">
-        <h3>温度趋势（最近 100 条 · sensor_data）</h3>
+        <h3>温度趋势</h3>
         <div class="monitor-chart-wrap">
           <canvas id="dbTempChart"></canvas>
         </div>
@@ -195,7 +195,7 @@
         <div id="dbLogBox" class="log-box log-box-lg"></div>
       </section>
 
-      <p class="monitor-foot">数据来自 Supabase · sensor_data 表</p>
+      <!-- <p class="monitor-foot">数据来自 Supabase · sensor_data 表</p> -->
     </div>
 
   </div>

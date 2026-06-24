@@ -1,0 +1,29 @@
+# Render 部署：仓库 https://github.com/HSY3178/smart-window-web
+# New → Blueprint 或 Web Service，Root Directory 填 sync
+services:
+  - type: web
+    name: greenhouse-sync
+    runtime: node
+    rootDir: sync
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: BEMFA_UID
+        sync: false
+      - key: BEMFA_TOPIC
+        value: light004
+      - key: BEMFA_TYPE
+        value: "1"
+      - key: BEMFA_NUM
+        value: "1"
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_TABLE
+        value: sensor_data
+      - key: SYNC_INTERVAL_MS
+        value: "5000"
+      - key: NODE_VERSION
+        value: "20"
