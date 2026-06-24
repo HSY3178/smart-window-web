@@ -5,24 +5,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>智能温控开窗系统</title>
   <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 </head>
 <body>
   <div class="app">
     <header class="topbar">
       <div class="topbar-title">
         <h1>智能温控开窗</h1>
-        <span class="topbar-sub">STM32F407 · 巴法云 MQTT</span>
+        <span class="topbar-sub">STM32F407 · 巴法云 MQTT · Supabase</span>
       </div>
       <div class="topbar-meta">
         <span id="lastUpdate" class="meta-time">--</span>
         <div id="connBadge" class="status-badge offline">
           <span class="status-dot"></span>
-          <span id="connText">未连接</span>
+          <span id="connText">MQTT 未连接</span>
         </div>
       </div>
     </header>
 
-    <!-- 概览条：温度 + 窗户 + 关键状态 -->
+    <nav class="page-tabs" role="tablist">
+      <button type="button" class="page-tab active" data-tab="control" role="tab">远程控制</button>
+      <button type="button" class="page-tab" data-tab="monitor" role="tab">历史数据</button>
+    </nav>
+
+    <!-- ═══ 远程控制 ═══ -->
+    <div id="panel-control" class="page-panel active">
+
     <section class="overview">
       <div class="stat-chip stat-host">
         <span class="stat-lbl">本机 H</span>
@@ -50,7 +59,6 @@
     </section>
 
     <div class="dashboard">
-      <!-- 左侧：控制区 -->
       <div class="panel-main">
         <section class="block">
           <h3>窗户控制</h3>
@@ -114,7 +122,6 @@
         </div>
       </div>
 
-      <!-- 右侧：状态 + 连接 + 日志 -->
       <aside class="panel-side">
         <section class="block">
           <h3>设备状态</h3>
@@ -142,17 +149,62 @@
             </div>
           </div>
         </section>
-
-        <section class="block block-log">
-          <h3>通信日志</h3>
-          <div id="logBox" class="log-box"></div>
-        </section>
       </aside>
     </div>
+
+    <section class="block block-log control-log-full">
+      <h3>通信日志</h3>
+      <div id="logBox" class="log-box log-box-lg"></div>
+    </section>
+
+    </div><!-- /panel-control -->
+
+    <!-- ═══ 历史数据（Supabase） ═══ -->
+    <div id="panel-monitor" class="page-panel">
+
+      <div id="dbErrorBox" class="monitor-error"></div>
+
+      <div class="monitor-meta">
+        <div id="dbLiveBadge" class="status-badge offline">
+          <span class="status-dot"></span>
+          <span id="dbLiveText">连接中...</span>
+        </div>
+        <span id="dbLastUpdate" class="meta-time">最后更新：--</span>
+      </div>
+
+      <div class="monitor-stats">
+        <div class="monitor-stat">
+          <span class="monitor-stat-lbl">当前温度</span>
+          <span class="monitor-stat-val"><span id="dbTempValue">--</span><small>°C</small></span>
+        </div>
+        <div id="dbDoorCard" class="monitor-stat door-closed">
+          <span class="monitor-stat-lbl">窗状态</span>
+          <span id="dbDoorValue" class="monitor-stat-val monitor-door-text">--</span>
+        </div>
+      </div>
+
+      <section class="block monitor-chart-block">
+        <h3>温度趋势（最近 100 条 · sensor_data）</h3>
+        <div class="monitor-chart-wrap">
+          <canvas id="dbTempChart"></canvas>
+        </div>
+      </section>
+
+      <section class="block block-log monitor-log">
+        <h3>通信日志</h3>
+        <div id="dbLogBox" class="log-box log-box-lg"></div>
+      </section>
+
+      <p class="monitor-foot">数据来自 Supabase · sensor_data 表</p>
+    </div>
+
   </div>
 
   <script src="https://unpkg.com/mqtt@5.3.5/dist/mqtt.min.js"></script>
   <script src="js/config.js"></script>
+  <script src="js/log.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/monitor.js"></script>
+  <script src="js/tabs.js"></script>
 </body>
 </html>

@@ -270,14 +270,10 @@ function setConnStatus(online, text) {
 }
 
 function addLog(text, type = '') {
-  const entry = document.createElement('div');
-  entry.className = 'log-entry ' + type;
-  entry.textContent = `[${new Date().toLocaleTimeString('zh-CN')}] ${text}`;
-  els.logBox.prepend(entry);
-  while (els.logBox.children.length > 40) {
-    els.logBox.removeChild(els.logBox.lastChild);
-  }
+  logWriter(text, type);
 }
+
+const logWriter = createLogWriter('logBox', 80);
 
 function publishCommand(cmd) {
   if (!mqttClient || !connected) {

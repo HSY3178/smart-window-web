@@ -6,6 +6,10 @@ const DEFAULT_CONFIG = {
   /** 温度阈值默认值，与 temp_param / 设备 Flash 一致，网页可远程修改 */
   tempOpen: 31.0,
   tempClose: 29.0,
+  /** Supabase 历史数据（与 greenhouse-web 一致） */
+  supabaseUrl: 'https://xfitwixmrobeswdqjssd.supabase.co',
+  supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmaXR3aXhtcm9iZXN3ZHFqc3NkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzMyNjEsImV4cCI6MjA5NzgwOTI2MX0.03bGO6uBIhd4UswXlojOBCbSMfo2i9BzwLIpKagCc5g',
+  supabaseTable: 'sensor_data',
 };
 
 function loadConfig() {
