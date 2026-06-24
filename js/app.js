@@ -70,6 +70,8 @@ CONTROL_BUTTON_IDS.forEach((id) => {
 
 let mqttClient = null;
 let connected = false;
+/** 用户正在编辑阈值时，不被设备周期上报覆盖 */
+let threshDirty = false;
 
 /** 解析设备上报: H:25.3,A:45,M:AUTO,F:OK,W:1,R:0,C:NONE,K:1 */
 function parseStatus(msg) {
@@ -235,8 +237,20 @@ function updateUI(data) {
   }
 
   if (data.To !== undefined && data.Tc !== undefined) {
-    updateThresholdDisplay(data.To, data.Tc);
-    updateThresholdHint();
+    const openVal = Number(data.To);
+    const closeVal = Number(data.Tc);
+    const matchesLocal =
+      Math.abs(openVal - config.tempOpen) < 0.05 &&
+      Math.abs(closeVal - config.tempClose) < 0.05;
+
+    if (!threshDirty || matchesLocal) {
+      updateThresholdDisplay(openVal, closeVal);
+      persistThresholdsToConfig(openVal, closeVal);
+      updateThresholdHint();
+      if (matchesLocal) {
+        threshDirty = false;
+      }
+    }
   }
 
   els.lastUpdate.textContent = new Date().toLocaleString('zh-CN');
@@ -362,12 +376,20 @@ function disconnectMqtt() {
   addLog('已断开连接');
 }
 
+function persistThresholdsToConfig(openVal, closeVal) {
+  config.tempOpen = openVal;
+  config.tempClose = closeVal;
+  saveConfig(config);
+}
+
 function initForm() {
   els.inputUid.value = config.uid;
   els.inputTopic.value = config.topic;
   els.inputWsUrl.value = config.mqttWsUrl;
   updateThresholdDisplay(config.tempOpen, config.tempClose);
   updateThresholdHint();
+  /* 有本地保存记录时优先显示本地阈值，避免被设备旧值刷回 */
+  threshDirty = !!localStorage.getItem('smartWindowConfig');
 }
 
 function applyThresholds() {
@@ -376,8 +398,12 @@ function applyThresholds() {
     return;
   }
   const { open, close } = readThresholdInputs();
-  publishCommand(`SET_TEMP_OPEN=${Number(open).toFixed(1)}`);
-  publishCommand(`SET_TEMP_CLOSE=${Number(close).toFixed(1)}`);
+  const openVal = Number(Number(open).toFixed(1));
+  const closeVal = Number(Number(close).toFixed(1));
+  publishCommand(`SET_TEMP=${openVal.toFixed(1)},${closeVal.toFixed(1)}`);
+  persistThresholdsToConfig(openVal, closeVal);
+  threshDirty = true;
+  addLog('阈值已应用到设备', 'cmd');
   setTimeout(() => publishCommand('GET'), 400);
 }
 
@@ -415,13 +441,32 @@ els.btnSaveThresh.addEventListener('click', () => {
     addLog('请先修正阈值再保存', 'err');
     return;
   }
-  applyThresholds();
-  setTimeout(() => publishCommand('TEMP_SAVE'), 600);
+  const { open, close } = readThresholdInputs();
+  const openVal = Number(Number(open).toFixed(1));
+  const closeVal = Number(Number(close).toFixed(1));
+  publishCommand(`SET_TEMP=${openVal.toFixed(1)},${closeVal.toFixed(1)}`);
+  persistThresholdsToConfig(openVal, closeVal);
+  threshDirty = true;
+  setTimeout(() => publishCommand('TEMP_SAVE'), 400);
+  setTimeout(() => {
+    publishCommand('GET');
+    addLog('阈值已写入设备 Flash 并保存到本地', 'cmd');
+  }, 800);
 });
-els.btnDefaultThresh.addEventListener('click', () => publishCommand('TEMP_DEFAULT'));
+els.btnDefaultThresh.addEventListener('click', () => {
+  threshDirty = false;
+  publishCommand('TEMP_DEFAULT');
+  setTimeout(() => publishCommand('GET'), 400);
+});
 
-els.inputThreshOpen.addEventListener('input', updateThresholdHint);
-els.inputThreshClose.addEventListener('input', updateThresholdHint);
+els.inputThreshOpen.addEventListener('input', () => {
+  threshDirty = true;
+  updateThresholdHint();
+});
+els.inputThreshClose.addEventListener('input', () => {
+  threshDirty = true;
+  updateThresholdHint();
+});
 
 els.btnConnect.addEventListener('click', connectMqtt);
 els.btnDisconnect.addEventListener('click', disconnectMqtt);
@@ -430,6 +475,12 @@ els.btnSaveConfig.addEventListener('click', () => {
   config.uid = els.inputUid.value.trim();
   config.topic = els.inputTopic.value.trim();
   config.mqttWsUrl = els.inputWsUrl.value.trim();
+  if (updateThresholdHint()) {
+    const { open, close } = readThresholdInputs();
+    config.tempOpen = Number(Number(open).toFixed(1));
+    config.tempClose = Number(Number(close).toFixed(1));
+    threshDirty = true;
+  }
   saveConfig(config);
   addLog('配置已保存到浏览器本地');
   disconnectMqtt();

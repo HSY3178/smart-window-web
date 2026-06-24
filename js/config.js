@@ -3,7 +3,7 @@ const DEFAULT_CONFIG = {
   uid: '45c255a3ffe318013c347e50f7a8fabe',
   topic: 'light004',
   mqttWsUrl: 'wss://bemfa.com:9504/wss',
-  /** 参考阈值（设备 LCD 可修改，云端暂不支持远程设置） */
+  /** 温度阈值默认值，与 temp_param / 设备 Flash 一致，网页可远程修改 */
   tempOpen: 31.0,
   tempClose: 29.0,
 };
